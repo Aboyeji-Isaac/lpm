@@ -1,6 +1,6 @@
 # RFC-0001: Problem Statement
 
-- Status: Draft
+- Status: Accepted
 - Phase: Specification
 - Reconstruction note: This is a new reconstruction based on documented project design history. It is not the original lost file and has not been accepted.
 
@@ -10,7 +10,9 @@ AI coding agents can be highly effective during uninterrupted development sessio
 
 Interruptions such as usage limits, connectivity failures, application or terminal crashes, system shutdowns, context-window exhaustion, or switching agents or machines can force developers to reconstruct progress manually before work can continue. This uncertainty can lead to repeated investigation, duplicated implementation, forgotten decisions, unnecessary token consumption, and reduced engineering productivity.
 
-Living Project Memory (LPM) is proposed as an open, AI-agnostic protocol for preserving engineering execution continuity. It should record meaningful execution history alongside engineering work so that humans and compatible tools can reconstruct the last known state after an interruption.
+Living Project Memory (LPM) is proposed as an open, AI-agnostic protocol for preserving engineering execution continuity. In this RFC, **engineering execution state** means the known facts, declared intent, outcomes, decisions, task progress, and unresolved operations needed to understand where engineering work stopped and how it can safely continue. It does not mean complete machine or IDE state, complete conversation memory, filesystem snapshots, general project knowledge, or guaranteed autonomous recovery.
+
+LPM must preserve history incrementally as meaningful engineering actions and observations occur so that humans and compatible tools can reconstruct the last successfully recorded execution point after an interruption.
 
 ## 2. Motivation
 
@@ -69,23 +71,24 @@ Loss of execution continuity can cause:
 
 ## 6. Requirements
 
-A solution to this problem should:
+A solution to this problem must satisfy these foundational requirements:
 
-- preserve meaningful engineering execution history continuously alongside work;
-- record on meaningful actions and observations rather than depend on periodic timers or end-of-task receipts;
+- record meaningful engineering activity incrementally as it occurs;
+- make recording event-driven, in response to meaningful actions and observations, rather than primarily timer-driven or dependent on end-of-task receipts;
 - survive unexpected interruption to the extent that previously recorded history remains available;
-- distinguish historical facts from intent, plans, predictions, and recommendations;
-- preserve history without rewriting past events during normal operation;
-- treat the event history as the authoritative source for reconstructing execution state;
+- distinguish recorded facts from declared intent, plans, predictions, and recommendations;
+- ensure recorded historical events are not rewritten during normal operation;
+- treat LPM history as the authoritative record of recorded engineering execution facts, without treating it as authoritative over the observable filesystem, repository, Git state, databases, or external systems;
+- allow recovery to compare recorded history with observable current project state;
+- make execution state reconstructable from durable recorded history;
 - enable identification of completed and apparently incomplete work;
-- remain independent of a particular AI model, agent, vendor, IDE, or hosting platform;
-- support use by both humans and machines;
-- be human-readable and machine-readable;
-- integrate with normal development workflows;
-- reduce duplicated investigation and implementation; and
+- remain independent of any particular AI model, agent, vendor, IDE, or hosting platform;
+- provide representations suitable for both human and machine consumption;
 - remain extensible without imposing unnecessary complexity.
 
 These requirements describe desired protocol properties. They do not select an event schema, storage format, API, or implementation.
+
+Integrating with normal development workflows and reducing duplicated investigation or implementation are desired outcomes, not strict protocol requirements.
 
 ## 7. Scope
 
@@ -112,7 +115,7 @@ LPM is not intended to:
 - replace AI conversation history;
 - become a project-management system;
 - automatically write source code;
-- guarantee recovery of actions that were never durably recorded;
+- guarantee preservation or recovery of an action that was not successfully recorded before an interruption;
 - infer that declared intent proves an action occurred; or
 - depend on a proprietary AI platform.
 
@@ -128,7 +131,7 @@ LPM should eventually allow developers and compatible agents to:
 - transfer execution history between compatible agents and environments; and
 - improve the reliability of long-running AI-assisted development.
 
-The protocol succeeds when its recorded history provides enough trustworthy evidence for a human or compatible agent to explain what is known, what remains uncertain, and how work can safely continue after an interruption.
+The protocol succeeds when its recorded history provides enough trustworthy evidence for a human or compatible agent to explain what is known, what remains uncertain, and how work can safely continue after an interruption. Its durability boundary is the last successfully recorded execution point; later unrecorded activity may need to be inferred from observable current project state and cannot be guaranteed by LPM.
 
 ## 10. Open Questions
 
